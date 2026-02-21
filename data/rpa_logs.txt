@@ -1,0 +1,8 @@
+2026-02-21 10:00:01 [Info] Execution Started. Process: SAP_Invoice_Processing.
+2026-02-21 10:00:05 [Info] Navigating to SAP Transaction VA01.
+2026-02-21 10:00:12 [Error] System.Exception: Cannot find the UI element corresponding to the selector: <sap id='btn_save' />. 
+    at Source: Click Save (REFramework State: Process Transaction)
+2026-02-21 10:00:13 [Warn] Retrying Transaction 1...
+2026-02-21 10:00:20 [Fatal] BusinessRuleException: Customer ID 'LL-987' not found in database. 
+    at Source: Validate Data (REFramework State: Get Transaction Data)
+2026-02-21 10:00:21 [Info] Execution Ended. Status: Failed.
