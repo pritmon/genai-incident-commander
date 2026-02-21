@@ -70,6 +70,7 @@ genai-incident-commander/
 ├── data/
 │   └── rpa_logs.txt     # Sample SAP error logs for testing
 ├── artifacts/
+│   ├── technical_deep_dive.md  # Architectural Q&A and System Design
 │   ├── implementation_plan.md  # Simple "Blueprint" of how the parts work
 │   └── git_commands_history.md # Record of terminal commands used in build
 ├── .env                 # (Ignored) Your Google API Key configuration
