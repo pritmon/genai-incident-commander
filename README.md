@@ -1,5 +1,9 @@
 # GenAI Incident Commander
 
+![Python CI](https://img.shields.io/badge/Python_CI-passing-success?style=for-the-badge&logo=github)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-success?style=for-the-badge)](https://genai-incident-commander.onrender.com/docs)
+
+
 A FastAPI application powered by Gemini 1.5 Flash to automatically analyze RPA logs, identify root causes, and suggest SAP selector fixes.
 
 ## Project Structure
