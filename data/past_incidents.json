@@ -1,0 +1,55 @@
+[
+  {
+    "id": "INC-001",
+    "error_type": "System Exception",
+    "keywords": [
+      "btn_save",
+      "UI element",
+      "selector",
+      "SAP",
+      "VA01"
+    ],
+    "root_cause": "SAP UI element btn_save was not found due to a dynamic ID change after a system upgrade.",
+    "fix": "Update selector to <sap id='btn_save' title='Save' parentid='toolbar' /> to include parent context.",
+    "resolution": "Updated selector in UiPath and redeployed. Bot ran successfully."
+  },
+  {
+    "id": "INC-002",
+    "error_type": "Business Exception",
+    "keywords": [
+      "Customer ID",
+      "not found",
+      "database",
+      "BusinessRuleException"
+    ],
+    "root_cause": "Customer ID was missing from the master database due to incomplete data migration.",
+    "fix": "Add validation step before processing. If Customer ID not found, skip and send alert email.",
+    "resolution": "Added pre-check and business exception handler. Ticket raised to data team."
+  },
+  {
+    "id": "INC-003",
+    "error_type": "System Exception",
+    "keywords": [
+      "timeout",
+      "SAP",
+      "connection",
+      "network"
+    ],
+    "root_cause": "SAP connection timed out due to network instability during peak hours.",
+    "fix": "Add retry logic with exponential backoff. Max 3 retries before throwing system exception.",
+    "resolution": "Added retry mechanism. Scheduled bot to run off-peak hours."
+  },
+  {
+    "id": "INC-004",
+    "error_type": "Business Exception",
+    "keywords": [
+      "invoice",
+      "duplicate",
+      "already exists",
+      "VA01"
+    ],
+    "root_cause": "Invoice number already existed in SAP. Duplicate data submitted by upstream system.",
+    "fix": "Add duplicate check before submitting invoice. Use GET_INVOICE API to verify first.",
+    "resolution": "Upstream system fixed. Added deduplication logic in bot."
+  }
+]

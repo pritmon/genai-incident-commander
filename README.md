@@ -1,13 +1,13 @@
 <div align="center">
-  
+
 # 🤖 GenAI Incident Commander
 
-![Python CI](https://img.shields.io/badge/Python_CI-passing-success?style=for-the-badge&logo=github)
-[![Live Demo](https://img.shields.io/badge/Live-Demo-success?style=for-the-badge)](https://genai-incident-commander.onrender.com/docs)
+![Tests](https://img.shields.io/badge/Tests-42%20passing-success?style=for-the-badge&logo=pytest)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
-![Gemini](https://img.shields.io/badge/Gemini_1.5_Flash-8E75B2?style=for-the-badge&logo=google)
+![Claude](https://img.shields.io/badge/Claude_AI-Anthropic-blueviolet?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python_3.9+-3776AB?style=for-the-badge&logo=python)
 
-**An intelligent, automated log analysis API that translates complex RPA failures into actionable human insights using Google's Gemini LLM.**
+**An agentic AI-powered API that analyzes RPA failure logs, classifies errors, searches past incidents, and suggests exact fixes — powered by Claude AI (Anthropic).**
 
 </div>
 
@@ -15,47 +15,43 @@
 
 ## 📖 Overview
 
-The **GenAI Incident Commander** is a production-ready FastAPI application designed specifically for Robotic Process Automation (RPA) Ops teams. Debugging raw RPA logs can be tedious, time-consuming, and prone to human error. This API acts as a "Senior AI Architect," instantly ingesting log files and leveraging **Gemini 1.5 Flash** (via `google-generativeai`) to automatically:
+The **GenAI Incident Commander** is a production-ready FastAPI application for RPA Ops teams. Instead of one big prompt → one answer, it uses a **true agentic loop** — Claude AI calls specialized tools step by step, reasons through the evidence, and produces a structured incident report.
 
-1. 🔍 **Identify the Root Cause:** Pinpoint exactly why the bot failed.
-2. 🛠️ **Suggest UX/UI Fixes:** Provide concrete, corrected SAP UI selectors to resolve the issue.
-3. 🏷️ **Classify the Exception:** Categorize the error strictly as a **Business Exception** or a **System Exception**.
-
-This turns hours of manual log reading into a sub-second API call.
-
----
-
-## � Why is this Useful? (Explained Simply)
-
-Imagine you have a robot factory. Your robots (RPA bots) do all the boring data-entry jobs for you every single day. But sometimes... a robot gets confused and stops working. 
-
-Usually, a human engineer has to spend hours reading through thousands of lines of confusing "robot gibberish" (logs) just to figure out why it broke. 
-
-**This project fixes that using AI!**
-
-Instead of a human reading the logs, you just hand the broken robot's diary to this API. In less than 5 seconds, Google's super-smart Gemini AI reads the whole thing and tells you:
-1. **"It broke because the customer ID was missing from the database."** (Root Cause)
-2. **"To fix the bot, you need to change this specific button click code to THIS."** (SAP Fixes)
-3. **"This wasn't a computer glitch, someone just typed the wrong data!"** (Classification)
-
-It's like having the world's fastest, smartest senior engineer on call 24/7 to instantly fix your automated workforce!
+**The agent automatically:**
+1. 🔍 **Classifies the error** — Business Exception or System Exception?
+2. 🧠 **Extracts keywords** — what components, transactions, and selectors are involved?
+3. 📚 **Searches past incidents** — have we seen this before? What fixed it last time?
+4. 🛠️ **Suggests exact SAP selector fixes** — corrected XML you can paste straight into UiPath
+5. 📋 **Writes a full incident report** — root cause, priority, recommended actions
 
 ---
 
-## �🚀 Key Features
+## 🤖 Why Agentic? (In Plain English)
 
-* **Instant Analysis:** Simply `POST` a `.txt` log file to the `/analyze` endpoint and receive a structured JSON response in seconds.
-* **LLM Powered:** Uses Google's state-of-the-art Gemini 1.5 Flash model for deep contextual understanding of system errors.
-* **Developer Friendly:** Built on FastAPI, providing out-of-the-box Swagger UI (`/docs`) for easy testing and integration.
-* **Robust Error Handling:** Automatically handles empty files, invalid file types, and external API failures gracefully.
+Imagine you have a robot factory. Your bots do boring data-entry jobs every day — but sometimes one breaks. A human engineer has to spend hours reading thousands of lines of robot logs to figure out why.
+
+**This project fixes that using AI — but not just any AI call:**
+
+| Approach | What it does |
+|---|---|
+| Basic LLM call | One prompt → one answer. No memory, no tools. |
+| RAG | Searches a database first, then answers. |
+| ✅ **Agentic (this project)** | AI decides which tools to use, calls them in sequence, loops until confident, then reports. |
+
+The agent acts like a real senior engineer: checks the error type, searches old case files, looks up the broken selector, then writes its findings. **You didn't tell it what to do — it decided.**
 
 ---
 
 ## ⚙️ Tech Stack
 
-* **Backend Framework:** Python 3.9+, FastAPI, Uvicorn
-* **AI Engine:** Google Generative AI (`gemini-2.5-flash`)
-* **Environment:** `python-dotenv` for secure credential management
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.9+, FastAPI, Uvicorn |
+| AI Engine | Claude claude-opus-4-8 (Anthropic SDK) |
+| Agentic Loop | Manual tool-use loop with 5 specialist tools |
+| Knowledge Base | JSON flat-file (grows via `POST /incidents`) |
+| Tests | pytest + pytest-asyncio (42 tests) |
+| Auth | API key header (`X-API-Key`) |
 
 ---
 
@@ -64,26 +60,26 @@ It's like having the world's fastest, smartest senior engineer on call 24/7 to i
 ```text
 genai-incident-commander/
 ├── app/
-│   ├── __init__.py      # Package initialization
-│   ├── main.py          # FastAPI application & routing logic
-│   └── engine.py        # Gemini AI prompt engineering & client calls
+│   ├── __init__.py          # Package init
+│   ├── main.py              # FastAPI app, routes, API key auth
+│   ├── engine.py            # Claude agentic loop (tool-use)
+│   └── tools.py             # 4 specialist tools the agent calls
 ├── data/
-│   └── rpa_logs.txt     # Sample SAP error logs for testing
-├── artifacts/
-│   ├── technical_deep_dive.md  # Architectural Q&A and System Design
-│   ├── implementation_plan.md  # Simple "Blueprint" of how the parts work
-│   └── git_commands_history.md # Record of terminal commands used in build
-├── .env                 # (Ignored) Your Google API Key configuration
-├── .gitignore           # Prevents leaking sensitive keys
-├── requirements.txt     # Standardized list of Python dependencies
-└── README.md            # You are reading it!
+│   ├── rpa_logs.txt         # Sample SAP error log for testing
+│   └── past_incidents.json  # Knowledge base (grows over time)
+├── tests/
+│   ├── test_tools.py        # 25 unit tests (no API key needed)
+│   └── test_api.py          # 17 integration tests (mocked)
+├── .env                     # Your secrets (never committed)
+├── .env.example             # Template — copy this to .env
+├── .gitignore               # Protects .env from being committed
+├── requirements.txt         # Python dependencies
+└── README.md                # This file
 ```
 
 ---
 
-## 💻 Local Setup & Installation
-
-Follow these steps to run the Incident Commander directly on your machine.
+## 💻 Local Setup
 
 **1. Clone the repository**
 ```bash
@@ -94,7 +90,8 @@ cd genai-incident-commander
 **2. Create a virtual environment**
 ```bash
 python3 -m venv venv
-source venv/bin/activate
+source venv/bin/activate      # Mac/Linux
+venv\Scripts\activate         # Windows
 ```
 
 **3. Install dependencies**
@@ -102,37 +99,116 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**4. Configure your API Key**
-Create a `.env` file in the root directory and add your Google AI Studio API key:
+**4. Configure your keys**
+```bash
+cp .env.example .env
+```
+Edit `.env` and add your keys:
 ```env
-GOOGLE_API_KEY=your_actual_api_key_here
+ANTHROPIC_API_KEY=sk-ant-...       # From console.anthropic.com
+API_KEY=your-secret-key-here       # Any strong string you choose
 ```
 
-**5. Start the server!**
+**5. Start the server**
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
-*Navigate to `http://localhost:8000/docs` in your browser to interact with the API.*
+Open **http://localhost:8000/docs** for the interactive Swagger UI.
 
 ---
 
-## 📈 Example Usage
+## 🔐 Authentication
 
-You can test the API using `curl` from your terminal!
+All endpoints (except `GET /`) require an `X-API-Key` header:
 
-**Request:**
 ```bash
-curl -X POST -F "file=@data/rpa_logs.txt" http://localhost:8000/analyze
+curl -X POST http://localhost:8000/analyze/agent \
+  -H "X-API-Key: your-secret-key-here" \
+  -F "file=@data/rpa_logs.txt"
 ```
 
-**Response:**
+Set `API_KEY` in your `.env` file. If not set, auth is disabled (useful for local dev).
+
+---
+
+## 📈 API Endpoints
+
+### `POST /analyze/agent` — Full Agentic Analysis ⭐
+Returns the complete report **plus every tool the agent called** so you can see its reasoning.
+
+```bash
+curl -X POST http://localhost:8000/analyze/agent \
+  -H "X-API-Key: your-key" \
+  -F "file=@data/rpa_logs.txt"
+```
+
 ```json
 {
-  "analysis": "1. Root Cause: BusinessRuleException caused by missing Customer ID 'LL-987'...\n2. SAP Selector fixes: Update <sap id='btn_save' /> to include parent window attributes...\n3. Classification: Business Exception"
+  "final_report": "# 🚨 RPA INCIDENT REPORT...",
+  "agent_steps": [
+    { "tool": "classify_error",       "args": {} },
+    { "tool": "extract_keywords",     "args": {} },
+    { "tool": "suggest_selector_fix", "args": {} },
+    { "tool": "search_past_incidents","args": { "keywords": ["btn_save", "VA01"] } }
+  ],
+  "iterations": 3
 }
 ```
 
+### `POST /analyze` — Classic Endpoint (backward-compatible)
+Returns only the final report text.
+
+### `POST /incidents` — Add to Knowledge Base
+Teach the agent from resolved incidents so future failures get matched faster.
+
+```bash
+curl -X POST http://localhost:8000/incidents \
+  -H "X-API-Key: your-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "error_type": "System Exception",
+    "keywords": ["btn_save", "VA01", "selector"],
+    "root_cause": "SAP dynamic ID changed after upgrade",
+    "fix": "Add title and parentid to selector",
+    "resolution": "Updated selector, redeployed bot"
+  }'
+```
+
+### `GET /incidents` — List Knowledge Base
+See all stored past incidents.
+
 ---
+
+## 🧪 Running Tests
+
+```bash
+pytest tests/ -v
+```
+
+All 42 tests run **without an API key** (Claude calls are mocked).
+
+---
+
+## 🤖 How the Agentic Loop Works
+
+```
+Log file
+   ↓
+Claude receives log + tool definitions
+   ↓
+Claude calls → classify_error()
+Claude calls → extract_keywords()
+Claude calls → suggest_selector_fix()
+Claude calls → search_past_incidents()  ← searches knowledge base
+Claude calls → search_past_incidents()  ← searches again with refined terms
+   ↓
+Claude writes final incident report
+```
+
+Claude decides which tools to call and in what order — **you don't tell it**. That's what makes it agentic.
+
+---
+
 <div align="center">
-  <i>Architected with ❤️ using FastAPI & Gemini</i>
+  <i>Built with FastAPI + Claude AI (Anthropic) · Agentic · Tested · Secure</i>
 </div>
