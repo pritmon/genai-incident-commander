@@ -88,11 +88,11 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Claude reads the log, calls tools one by one, and stops only when it is confident.**
 
-- Step 1: The log file is sent to Claude with a list of tools it can use
-- Step 2: Claude calls `classify_error` — is this a Business or System Exception?
-- Step 3: Claude calls `extract_keywords` — what are the key terms in the log?
-- Step 4: Claude calls `search_past_incidents` — have we seen this before?
-- Step 5: Claude calls `suggest_selector_fix` — is there a broken SAP selector?
+- Step 1: The log file is sent to Claude with a list of tools it can use → see [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py)
+- Step 2: Claude calls [`classify_error`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) — is this a Business or System Exception?
+- Step 3: Claude calls [`extract_keywords`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) — what are the key terms in the log?
+- Step 4: Claude calls [`search_past_incidents`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) — have we seen this before?
+- Step 5: Claude calls [`suggest_selector_fix`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) — is there a broken SAP selector?
 - Step 6: Claude has enough evidence → writes the full incident report → stops
 
 ---
@@ -101,7 +101,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Claude sends a signal called `end_turn` — meaning "I am done, here is my report."**
 
-- After each tool call, Claude reviews the results
+- After each tool call, Claude reviews the results → loop logic is in [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py)
 - If it needs more information — it calls another tool
 - When it has enough — it returns `end_turn` and writes the final report
 - There is also a safety limit of 10 iterations — so the loop never runs forever
@@ -112,10 +112,12 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Four specialist tools — each does one job very well.**
 
-- `classify_error` — reads the log and decides: Business Exception or System Exception?
-- `extract_keywords` — scans error and warning lines to pull out important terms
-- `search_past_incidents` — searches the knowledge base for similar past failures
-- `suggest_selector_fix` — finds broken SAP XML selectors and suggests a hardened version
+All 4 tools are defined in [tools.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py):
+
+- [`classify_error`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) — reads the log and decides: Business Exception or System Exception?
+- [`extract_keywords`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) — scans error and warning lines to pull out important terms
+- [`search_past_incidents`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) — searches the knowledge base for similar past failures
+- [`suggest_selector_fix`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) — finds broken SAP XML selectors and suggests a hardened version
 
 ---
 
@@ -127,6 +129,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
   - Example: Customer ID not found in SAP, duplicate invoice detected
 - **System Exception** — something failed at the technical level
   - Example: SAP timed out, a button selector stopped working, network dropped
+- Classification logic lives in [`classify_error`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py)
 
 ---
 
@@ -137,7 +140,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 - LangChain and LangGraph are frameworks that handle the loop for you — less code to write
 - But they hide what is happening inside — harder to explain, harder to debug
 - This project's loop is plain Python — Claude calls tool → we run the tool → we send result back → Claude loops again
-- Anyone reading `engine.py` can follow exactly what is happening line by line
+- Anyone reading [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py) can follow exactly what is happening line by line
 
 ---
 
@@ -150,7 +153,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 > 💡 **FastAPI builds the Swagger testing dashboard automatically — no extra work needed.**
 
 - FastAPI is a modern Python web framework for building APIs
-- The moment you define an endpoint, FastAPI generates Swagger UI at `/docs` for free
+- The moment you define an endpoint in [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py), FastAPI generates Swagger UI at `/docs` for free
 - It also validates all incoming and outgoing data automatically using Pydantic
 - It is the most popular Python API framework right now alongside Flask
 
@@ -160,7 +163,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **A webpage at `/docs` that lets you test all API endpoints by clicking buttons.**
 
-- FastAPI generates it automatically — you write zero extra code
+- FastAPI generates it automatically from [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py) — you write zero extra code
 - You can upload a log file, hit Execute, and see the full Claude response right in the browser
 - Very useful for demos — no curl commands or code needed
 - Available at `https://genai-incident-commander.onrender.com/docs`
@@ -174,6 +177,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 - FastAPI is the app — Uvicorn is what runs it
 - Think of FastAPI as a restaurant and Uvicorn as the building — the building keeps it open and accessible
 - It handles multiple requests at the same time without blocking
+- Start command is defined in [Dockerfile](https://github.com/pritmon/genai-incident-commander/blob/main/Dockerfile)
 
 ---
 
@@ -183,7 +187,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 - If someone sends a number where a word is expected — Pydantic catches it automatically
 - Returns a clear error message instead of crashing the app
-- FastAPI uses Pydantic under the hood for all request and response validation
+- All data models (request/response shapes) are defined in [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py)
 
 ---
 
@@ -194,7 +198,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 - Without Docker: "works on my laptop but crashes on the server" — very common problem
 - With Docker: the app, all libraries, all settings are packed into one container
 - That container runs the same way everywhere — laptop, server, cloud
-- Render.com runs this Docker container to serve the app on the internet
+- The full recipe is in [Dockerfile](https://github.com/pritmon/genai-incident-commander/blob/main/Dockerfile)
 
 ---
 
@@ -202,8 +206,10 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **A recipe file — Docker follows it step by step to build the container.**
 
+Open [Dockerfile](https://github.com/pritmon/genai-incident-commander/blob/main/Dockerfile) and you will see:
+
 - Start with Python 3.11 slim (a lightweight Python machine)
-- Install all libraries from requirements.txt
+- Install all libraries from [requirements.txt](https://github.com/pritmon/genai-incident-commander/blob/main/requirements.txt)
 - Copy all project files in
 - Run uvicorn to start the server
 - Every time you build, Docker follows this exact recipe
@@ -214,9 +220,9 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Render.com — it pulls from GitHub, builds the Docker container, serves it live.**
 
-- GitHub holds the code
+- GitHub holds the code — [github.com/pritmon/genai-incident-commander](https://github.com/pritmon/genai-incident-commander)
 - Render watches the GitHub repo
-- When new code is pushed — Render automatically rebuilds and redeploys
+- When new code is pushed — Render automatically rebuilds and redeploys using [Dockerfile](https://github.com/pritmon/genai-incident-commander/blob/main/Dockerfile)
 - Live URL: `https://genai-incident-commander.onrender.com`
 
 ---
@@ -226,7 +232,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 > 💡 **API keys are like passwords — they must never be inside the code or Docker image.**
 
 - If the Anthropic API key was in the code and pushed to GitHub — anyone could steal it
-- Instead, keys are stored in a `.env` file locally (never committed)
+- Instead, keys are stored in a `.env` file locally — excluded by [.gitignore](https://github.com/pritmon/genai-incident-commander/blob/main/.gitignore)
 - On Render — keys are entered manually in the Environment settings page
 - Docker receives them at runtime via `-e` flags — never baked into the image
 
@@ -240,7 +246,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **A JSON file that stores details of past RPA failures and their fixes.**
 
-- File: `data/past_incidents.json`
+- File: [data/past_incidents.json](https://github.com/pritmon/genai-incident-commander/blob/main/data/past_incidents.json)
 - Each entry has: error type, keywords, root cause, fix, and resolution
 - The agent searches this file every time it analyzes a new log
 - Currently has 4 incidents — grows over time via `POST /incidents`
@@ -252,7 +258,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 > 💡 **Keyword matching — counts how many words overlap between the log and past incidents.**
 
 - The agent extracts keywords from the current log: `["btn_save", "VA01", "selector"]`
-- It scores every past incident by how many of those keywords appear in it
+- It scores every past incident by how many of those keywords appear in it → logic in [`search_past_incidents`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py)
 - The top 2 highest-scoring matches are returned to Claude
 - Claude uses them to see if this failure happened before and what fixed it
 
@@ -263,7 +269,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 > 💡 **It is a simplified version of RAG — keyword matching instead of semantic search.**
 
 - True RAG uses a vector database — finds similar meaning even with different words
-- This project uses keyword overlap on a JSON file — simpler but effective for this use case
+- This project uses keyword overlap on [data/past_incidents.json](https://github.com/pritmon/genai-incident-commander/blob/main/data/past_incidents.json) — simpler but effective for this use case
 - The next evolution would be replacing the JSON with a vector database like Pinecone or ChromaDB
 
 ---
@@ -272,9 +278,9 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Engineers add resolved incidents via the `POST /incidents` endpoint.**
 
-- After a real RPA failure is fixed, an engineer posts the details to the API
+- After a real RPA failure is fixed, an engineer posts the details to the API → endpoint in [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py)
 - The system auto-assigns the next ID (INC-005, INC-006…)
-- Next time a similar failure happens, the agent finds it and recommends the same fix
+- Next time a similar failure happens, the agent finds it in [data/past_incidents.json](https://github.com/pritmon/genai-incident-commander/blob/main/data/past_incidents.json) and recommends the same fix
 - This is how the system gets smarter with every incident resolved
 
 ---
@@ -288,8 +294,8 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 > 💡 **Every request must include a secret key in the header — wrong key gets blocked.**
 
 - All endpoints (except the health check at `/`) require `X-API-Key` in the request header
+- Auth logic is in the `verify_api_key` function in [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py)
 - If the key is missing or wrong — server returns `401 Unauthorized` immediately
-- The correct key is set in the `.env` file and passed at runtime
 
 ---
 
@@ -297,7 +303,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **The `.env` file holds secrets — if pushed to GitHub, anyone in the world can steal them.**
 
-- `.gitignore` tells Git — never include this file in any commit
+- [.gitignore](https://github.com/pritmon/genai-incident-commander/blob/main/.gitignore) tells Git — never include `.env` in any commit
 - Even if you accidentally run `git add .` — `.env` stays out
 - Secrets are always passed separately: locally via `.env`, on cloud via environment settings
 
@@ -307,8 +313,8 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **The server blocks it immediately with a 400 error — before Claude even sees the file.**
 
-- File validation runs first — checks the filename ends in `.txt`
-- If not — returns `400 Bad Request: Only .txt files are supported`
+- File validation runs first in `_validate_log_file` function → [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py)
+- If not `.txt` — returns `400 Bad Request: Only .txt files are supported`
 - This prevents wasted Claude API calls and protects against unexpected input
 
 ---
@@ -321,8 +327,8 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **42 tests total — 25 unit tests and 17 integration tests.**
 
-- `tests/test_tools.py` — 25 unit tests, test each tool function in isolation
-- `tests/test_api.py` — 17 integration tests, test the full API end to end
+- [tests/test_tools.py](https://github.com/pritmon/genai-incident-commander/blob/main/tests/test_tools.py) — 25 unit tests, test each tool function in isolation
+- [tests/test_api.py](https://github.com/pritmon/genai-incident-commander/blob/main/tests/test_api.py) — 17 integration tests, test the full API end to end
 - All 42 pass without any API key — Claude is mocked in tests
 
 ---
@@ -331,8 +337,8 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Unit = test one function. Integration = test the whole flow end to end.**
 
-- **Unit test example:** does `classify_error()` return "Business Exception" for this log text?
-- **Integration test example:** does `POST /analyze/agent` return HTTP 200 with the correct JSON shape?
+- **Unit test example** in [test_tools.py](https://github.com/pritmon/genai-incident-commander/blob/main/tests/test_tools.py): does [`classify_error`](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) return "Business Exception" for this log?
+- **Integration test example** in [test_api.py](https://github.com/pritmon/genai-incident-commander/blob/main/tests/test_api.py): does `POST /analyze/agent` return HTTP 200 with the correct JSON shape?
 - Unit tests are faster and more isolated. Integration tests catch problems between components.
 
 ---
@@ -341,7 +347,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Real Claude calls cost money and take time — mocks are instant and free.**
 
-- A mock replaces the real Claude with a fake that returns a fixed response
+- A mock in [test_api.py](https://github.com/pritmon/genai-incident-commander/blob/main/tests/test_api.py) replaces the real Claude with a fake that returns a fixed response
 - Tests run in milliseconds instead of seconds
 - No API key needed — tests work fully offline
 - This is standard practice in professional software development
@@ -369,7 +375,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 - 2022–2023: Companies built basic chatbots — one question, one answer
 - 2024–2025: The shift moved to agents — AI that takes actions, calls tools, loops, decides what to do next
-- This project's engine.py is a live example of that shift — Claude decides its own steps
+- [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py) is a live example of that shift — Claude decides its own steps
 - Every major AI company (Anthropic, OpenAI, Google) is now focused on agentic products
 
 ---
@@ -392,7 +398,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 - AIOps is a growing market — using AI to monitor, detect, and fix operational issues automatically
 - Traditional approach: humans watch dashboards and read logs
 - AIOps approach: AI reads the logs, classifies the issue, finds the fix, alerts the team
-- This project does exactly that — automated incident detection and root cause analysis for RPA
+- This project does exactly that — see [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py) and [tools.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py)
 
 ---
 
@@ -411,10 +417,10 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Moving from flat files and keyword search to vector databases and semantic search.**
 
-- This project uses a JSON file with keyword matching — good for a starting point
+- This project uses [data/past_incidents.json](https://github.com/pritmon/genai-incident-commander/blob/main/data/past_incidents.json) with keyword matching — good for a starting point
 - The market trend is toward vector databases — Pinecone, ChromaDB, Weaviate
 - Vector search finds similar meaning even if the words are different
-- Companies are building "AI memory" systems that grow smarter with every resolved case — exactly like this project's `POST /incidents` endpoint
+- Companies are building "AI memory" systems that grow smarter with every resolved case — exactly like this project's `POST /incidents` endpoint in [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py)
 
 ---
 
@@ -422,10 +428,10 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Security, transparency, and human oversight are all built in.**
 
-- **Security** — API key auth protects every endpoint
-- **Transparency** — `agent_steps` field shows every tool Claude called so humans can audit the reasoning
+- **Security** — API key auth in [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py) protects every endpoint
+- **Transparency** — `agent_steps` field in [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py) shows every tool Claude called so humans can audit the reasoning
 - **Human oversight** — the AI suggests fixes but a human still applies them
-- **No hallucination risk** — tools return real data from the log, not guessed data
+- **No hallucination risk** — tools in [tools.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) return real data from the log, not guessed data
 - These are the exact principles regulators and enterprises are demanding from AI products in 2025
 
 ---
@@ -435,7 +441,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 > 💡 **Companies want to know WHY the AI said what it said — this project shows every step.**
 
 - Black-box AI: gives you an answer but no explanation — hard to trust in production
-- This project returns `agent_steps` — the exact list of tools Claude called and in what order
+- This project returns `agent_steps` — the exact list of tools Claude called and in what order → see [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py)
 - An engineer can look at the steps and verify the reasoning before acting on the report
 - AI explainability (also called XAI) is now a regulatory requirement in finance, healthcare, and government
 
@@ -445,10 +451,10 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Add a message queue, more containers, and a real database — the architecture supports it.**
 
-- Right now: one request at a time, JSON file, single Docker container
+- Right now: one request at a time, [data/past_incidents.json](https://github.com/pritmon/genai-incident-commander/blob/main/data/past_incidents.json), single Docker container
 - At scale: add a queue (like RabbitMQ or Kafka) so thousands of logs can be processed in parallel
 - Replace JSON with PostgreSQL or MongoDB for high-volume storage
-- Run multiple Docker containers behind a load balancer
+- Run multiple Docker containers ([Dockerfile](https://github.com/pritmon/genai-incident-commander/blob/main/Dockerfile)) behind a load balancer
 - Render.com can be replaced with AWS, GCP, or Azure for enterprise-grade deployment
 
 ---
@@ -459,7 +465,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 - RPA engineers who only know how to build bots will be replaced by bots themselves
 - The new skill is: build AI that monitors, fixes, and improves those bots
-- This project is a portfolio proof that you understand both RPA operations and AI engineering
+- This project is a portfolio proof — see [github.com/pritmon/genai-incident-commander](https://github.com/pritmon/genai-incident-commander)
 - Job titles emerging: AI Ops Engineer, Intelligent Automation Architect, GenAI Developer
 
 ---
@@ -471,7 +477,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 - UiPath has "Autopilot" — AI that helps build and fix bots
 - Automation Anywhere has "AARI" — AI assistant for automation
 - Both use LLMs under the hood to analyze logs, suggest fixes, and generate code
-- This project does the same thing independently — shows understanding of the underlying concept, not just usage of a vendor tool
+- This project does the same thing independently — see [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py) and [tools.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py)
 
 ---
 
@@ -479,8 +485,8 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 
 > 💡 **Four things: proper database, SSO login, audit trail, and SLA monitoring.**
 
-- **Database** — replace JSON with PostgreSQL, store millions of incidents
-- **SSO login** — enterprise teams use single sign-on (Okta, Azure AD) not API keys
+- **Database** — replace [data/past_incidents.json](https://github.com/pritmon/genai-incident-commander/blob/main/data/past_incidents.json) with PostgreSQL, store millions of incidents
+- **SSO login** — enterprise teams use single sign-on (Okta, Azure AD) not API keys like in [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py)
 - **Audit trail** — every analysis logged with timestamp, user, and result for compliance
 - **SLA monitoring** — track how long each incident took to resolve, flag breaches
 - These are the gaps between a working prototype and a product that a CTO would approve for production
@@ -492,18 +498,18 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 | Question | Answer |
 |---|---|
 | What language is it written in? | Python |
-| What framework handles the API? | FastAPI |
-| What AI model does it use? | Claude claude-opus-4-8 by Anthropic |
-| How many tools does Claude have? | 4 |
+| What framework handles the API? | FastAPI → [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py) |
+| What AI model does it use? | Claude claude-opus-4-8 by Anthropic → [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py) |
+| How many tools does Claude have? | 4 → [tools.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py) |
 | Where is it deployed? | Render.com |
-| How is it containerized? | Docker |
-| How many tests? | 42 (25 unit + 17 integration) |
-| What is the knowledge base format? | JSON flat file |
-| What header is used for auth? | X-API-Key |
-| What does `end_turn` mean? | Claude is done — no more tools, return the report |
-| What port does the app run on? | 8000 |
+| How is it containerized? | Docker → [Dockerfile](https://github.com/pritmon/genai-incident-commander/blob/main/Dockerfile) |
+| How many tests? | 42 → [test_tools.py](https://github.com/pritmon/genai-incident-commander/blob/main/tests/test_tools.py) + [test_api.py](https://github.com/pritmon/genai-incident-commander/blob/main/tests/test_api.py) |
+| What is the knowledge base format? | JSON flat file → [past_incidents.json](https://github.com/pritmon/genai-incident-commander/blob/main/data/past_incidents.json) |
+| What header is used for auth? | X-API-Key → [main.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/main.py) |
+| What does `end_turn` mean? | Claude is done — no more tools, return the report → [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py) |
+| What port does the app run on? | 8000 → [Dockerfile](https://github.com/pritmon/genai-incident-commander/blob/main/Dockerfile) |
 | Where is the Swagger UI? | /docs |
-| Where is the browser UI? | /ui |
+| Where is the browser UI? | /ui → [index.html](https://github.com/pritmon/genai-incident-commander/blob/main/app/static/index.html) |
 | What is the live URL? | https://genai-incident-commander.onrender.com/ui |
 
 ---
