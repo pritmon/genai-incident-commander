@@ -210,6 +210,42 @@ All 42 tests run **without an API key** (Claude calls are mocked).
 
 ---
 
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        USER / CLIENT                        │
+│              Browser UI  /  curl  /  Swagger                │
+└─────────────────────┬───────────────────────────────────────┘
+                      │  HTTP request + log file
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   FastAPI  (main.py)                        │
+│   • Validates file (.txt only)                              │
+│   • Checks API key (X-API-Key header)                       │
+│   • Routes to correct endpoint                              │
+└─────────────────────┬───────────────────────────────────────┘
+                      │  log text
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Claude Agentic Loop  (engine.py)               │
+│                                                             │
+│   Claude ──calls──► classify_error()                        │
+│   Claude ──calls──► extract_keywords()                      │
+│   Claude ──calls──► search_past_incidents()  ◄── JSON DB    │
+│   Claude ──calls──► suggest_selector_fix()                  │
+│   Claude ──loops until confident──► writes final report     │
+└─────────────────────┬───────────────────────────────────────┘
+                      │  JSON response
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│                        USER / CLIENT                        │
+│         final_report + agent_steps + iterations             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 🤖 How the Agentic Loop Works
 
 ```
