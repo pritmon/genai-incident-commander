@@ -28,7 +28,7 @@ The **GenAI Incident Commander** is a production-ready FastAPI application for R
 
 ---
 
-## 🤖 Why Agentic? (In Plain English)
+## 🤖 Why Agentic?
 
 Imagine you have a robot factory. Your bots do boring data-entry jobs every day — but sometimes one breaks. A human engineer has to spend hours reading thousands of lines of robot logs to figure out why.
 
