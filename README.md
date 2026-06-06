@@ -46,7 +46,15 @@ The agent acts like a real senior engineer: checks the error type, searches old 
 
 ## ⚙️ Tech Stack
 
+---
+
 ### 🖥️ Backend
+
+![Python](https://img.shields.io/badge/Python_3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
+![Uvicorn](https://img.shields.io/badge/Uvicorn-499848?style=for-the-badge&logo=gunicorn&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic-E92063?style=for-the-badge&logo=pydantic&logoColor=white)
+
 | Technology | What it does |
 |---|---|
 | **Python 3.11** | The programming language everything is written in |
@@ -54,7 +62,14 @@ The agent acts like a real senior engineer: checks the error type, searches old 
 | **Uvicorn** | The server that keeps the app running and listening for requests |
 | **Pydantic** | Validates that request and response data has the correct shape |
 
+---
+
 ### 🤖 AI & Agentic Layer
+
+![Claude](https://img.shields.io/badge/Claude_Opus-Anthropic-blueviolet?style=for-the-badge)
+![Anthropic SDK](https://img.shields.io/badge/Anthropic_SDK-Python-7B2FBE?style=for-the-badge)
+![Agentic](https://img.shields.io/badge/Agentic_Loop-Tool_Use-orange?style=for-the-badge)
+
 | Technology | What it does |
 |---|---|
 | **Claude claude-opus-4-8 (Anthropic)** | The AI brain — reads the log, calls tools, writes the incident report |
@@ -62,27 +77,52 @@ The agent acts like a real senior engineer: checks the error type, searches old 
 | **Agentic Loop** | Claude decides which tools to call, loops until confident, then stops — built manually without any framework |
 | **4 Specialist Tools** | classify_error, extract_keywords, search_past_incidents, suggest_selector_fix |
 
+---
+
 ### 🗄️ Knowledge Base
+
+![JSON](https://img.shields.io/badge/JSON_Flat_File-Knowledge_Base-lightgrey?style=for-the-badge&logo=json)
+
 | Technology | What it does |
 |---|---|
 | **past_incidents.json** | Flat-file database — stores past RPA failures, searched by keyword matching |
 
+---
+
 ### 🔐 Security
+
+![Auth](https://img.shields.io/badge/API_Key_Auth-X--API--Key-red?style=for-the-badge&logo=shield)
+
 | Technology | What it does |
 |---|---|
 | **API Key Auth** | Protects all endpoints — caller must send correct key in X-API-Key header |
 
+---
+
 ### 🧪 Testing
+
+![Tests](https://img.shields.io/badge/Tests-42_Passing-success?style=for-the-badge&logo=pytest)
+![pytest](https://img.shields.io/badge/pytest-asyncio-blue?style=for-the-badge&logo=pytest)
+
 | Technology | What it does |
 |---|---|
 | **pytest (42 tests)** | Automated tests — 25 unit tests + 17 integration tests, all pass without an API key |
 
+---
+
 ### 🐳 Containerization & Deployment
+
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=black)
+![Swagger](https://img.shields.io/badge/Swagger_UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+
 | Technology | What it does |
 |---|---|
 | **Docker** | Packages the entire app into a container so it runs identically anywhere |
 | **Render.com** | Cloud platform that hosts the Docker container and serves it on the internet |
 | **Swagger UI** | Auto-generated testing dashboard at /docs — test all endpoints without writing code |
+
+---
 
 ---
 
