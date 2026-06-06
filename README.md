@@ -9,6 +9,8 @@
 
 **An agentic AI-powered API that analyzes RPA failure logs, classifies errors, searches past incidents, and suggests exact fixes — powered by Claude AI (Anthropic).**
 
+🌐 **Live Demo:** [https://genai-incident-commander.onrender.com/ui](https://genai-incident-commander.onrender.com/ui)
+
 </div>
 
 ---
@@ -52,6 +54,8 @@ The agent acts like a real senior engineer: checks the error type, searches old 
 | Knowledge Base | JSON flat-file (grows via `POST /incidents`) |
 | Tests | pytest + pytest-asyncio (42 tests) |
 | Auth | API key header (`X-API-Key`) |
+| Containerization | Docker |
+| Deployment | Render.com (Docker runtime) |
 
 ---
 
@@ -176,6 +180,23 @@ curl -X POST http://localhost:8000/incidents \
 
 ### `GET /incidents` — List Knowledge Base
 See all stored past incidents.
+
+---
+
+## 🐳 Docker
+
+**Build and run locally with Docker:**
+
+```bash
+docker build -t genai-incident-commander .
+
+docker run -p 8000:8000 \
+  -e ANTHROPIC_API_KEY=sk-ant-... \
+  -e API_KEY=your-secret-key \
+  genai-incident-commander
+```
+
+Open **http://localhost:8000/ui** — the app runs identically to the cloud version.
 
 ---
 
