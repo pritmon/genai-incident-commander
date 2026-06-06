@@ -46,16 +46,22 @@ The agent acts like a real senior engineer: checks the error type, searches old 
 
 ## ⚙️ Tech Stack
 
-| Layer | Technology |
+| Technology | What it does |
 |---|---|
-| Backend | Python 3.9+, FastAPI, Uvicorn |
-| AI Engine | Claude claude-opus-4-8 (Anthropic SDK) |
-| Agentic Loop | Manual tool-use loop with 5 specialist tools |
-| Knowledge Base | JSON flat-file (grows via `POST /incidents`) |
-| Tests | pytest + pytest-asyncio (42 tests) |
-| Auth | API key header (`X-API-Key`) |
-| Containerization | Docker |
-| Deployment | Render.com (Docker runtime) |
+| **Python 3.11** | The programming language everything is written in |
+| **FastAPI** | Receives requests from users over the internet and sends responses back |
+| **Uvicorn** | The server that keeps the app running and listening for requests |
+| **Claude claude-opus-4-8 (Anthropic)** | The AI brain — reads the log, calls tools, writes the incident report |
+| **Anthropic SDK** | Official Python library to talk to Claude AI |
+| **Agentic Loop** | Claude decides which tools to call, loops until confident, then stops — built manually without frameworks |
+| **4 Specialist Tools** | classify_error, extract_keywords, search_past_incidents, suggest_selector_fix |
+| **past_incidents.json** | Flat-file knowledge base — stores past RPA failures, searched by keyword matching |
+| **Pydantic** | Validates that request and response data has the correct shape |
+| **pytest (42 tests)** | Automated tests — 25 unit tests + 17 integration tests, all pass without an API key |
+| **API Key Auth** | Protects all endpoints — caller must send correct key in X-API-Key header |
+| **Docker** | Packages the entire app into a container so it runs identically anywhere |
+| **Render.com** | Cloud platform that hosts the Docker container and serves it on the internet |
+| **Swagger UI** | Auto-generated testing dashboard at /docs — test all endpoints without writing code |
 
 ---
 
