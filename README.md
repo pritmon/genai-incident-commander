@@ -131,20 +131,30 @@ The agent acts like a real senior engineer: checks the error type, searches old 
 ```text
 genai-incident-commander/
 ├── app/
-│   ├── __init__.py          # Package init
-│   ├── main.py              # FastAPI app, routes, API key auth
-│   ├── engine.py            # Claude agentic loop (tool-use)
-│   └── tools.py             # 4 specialist tools the agent calls
+│   ├── __init__.py          # Makes app/ a Python package — required for imports
+│   ├── main.py              # FastAPI server — all routes, endpoints, API key auth
+│   ├── engine.py            # Claude AI agentic loop — the brain of the project
+│   ├── tools.py             # 4 specialist tools Claude can call during analysis
+│   └── static/
+│       └── index.html       # Beautiful browser UI — drag & drop, report viewer
 ├── data/
-│   ├── rpa_logs.txt         # Sample SAP error log for testing
-│   └── past_incidents.json  # Knowledge base (grows over time)
+│   ├── past_incidents.json  # Knowledge base — stores past RPA failures and fixes
+│   ├── rpa_logs.txt         # Sample SAP error log for testing and demos
+│   └── README.md            # Explains the knowledge base structure and usage
 ├── tests/
-│   ├── test_tools.py        # 25 unit tests (no API key needed)
-│   └── test_api.py          # 17 integration tests (mocked)
-├── .env                     # Your secrets (never committed)
-├── .env.example             # Template — copy this to .env
-├── .gitignore               # Protects .env from being committed
-├── requirements.txt         # Python dependencies
+│   ├── __init__.py          # Makes tests/ a Python package
+│   ├── test_tools.py        # 25 unit tests — tests each tool function in isolation
+│   └── test_api.py          # 17 integration tests — tests full API end to end
+├── artifacts/
+│   ├── QA.md                # 46 Q&A covering every concept in this project
+│   ├── implementation_plan.md  # Original build plan
+│   └── git_commands_history.md # Git commands used during development
+├── .env                     # Your secrets — never committed to GitHub
+├── .env.example             # Template — copy this to .env and fill in your keys
+├── .gitignore               # Tells Git to ignore .env, venv, __pycache__, .DS_Store
+├── .dockerignore            # Tells Docker to ignore venv, .env, __pycache__
+├── Dockerfile               # Recipe to build the Docker container
+├── requirements.txt         # All Python libraries — install with pip
 └── README.md                # This file
 ```
 
