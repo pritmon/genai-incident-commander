@@ -5,7 +5,7 @@
 ![Tests](https://img.shields.io/badge/Tests-42%20passing-success?style=for-the-badge&logo=pytest)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Claude](https://img.shields.io/badge/Claude_AI-Anthropic-blueviolet?style=for-the-badge)
-![Python](https://img.shields.io/badge/Python_3.9+-3776AB?style=for-the-badge&logo=python)
+![Python](https://img.shields.io/badge/Python_3.11-3776AB?style=for-the-badge&logo=python)
 
 **An agentic AI-powered API that analyzes RPA failure logs, classifies errors, searches past incidents, and suggests exact fixes — powered by Claude AI (Anthropic).**
 
@@ -124,8 +124,6 @@ The agent acts like a real senior engineer: checks the error type, searches old 
 
 ---
 
----
-
 ## 📂 Project Structure
 
 ```text
@@ -146,8 +144,9 @@ genai-incident-commander/
 │   ├── test_tools.py        # 25 unit tests — tests each tool function in isolation
 │   └── test_api.py          # 17 integration tests — tests full API end to end
 ├── artifacts/
-│   ├── QA.md                # 46 Q&A covering every concept in this project
+│   ├── QA.md                   # 46 Q&A covering every concept in this project
 │   ├── implementation_plan.md  # Original build plan
+│   ├── technical_deep_dive.md  # Deep technical notes
 │   └── git_commands_history.md # Git commands used during development
 ├── .env                     # Your secrets — never committed to GitHub
 ├── .env.example             # Template — copy this to .env and fill in your keys
@@ -225,7 +224,7 @@ curl -X POST http://localhost:8000/analyze/agent \
 
 ```json
 {
-  "final_report": "# 🚨 RPA INCIDENT REPORT...",
+  "final_report": "## ❌ WHAT WENT WRONG\nThe bot failed because...",
   "agent_steps": [
     { "tool": "classify_error",       "args": {} },
     { "tool": "extract_keywords",     "args": {} },
@@ -257,6 +256,12 @@ curl -X POST http://localhost:8000/incidents \
 
 ### `GET /incidents` — List Knowledge Base
 See all stored past incidents.
+
+### `GET /ui` — Browser UI
+Open the drag-and-drop interface in your browser.
+
+### `GET /docs` — Swagger UI
+Auto-generated API testing dashboard — test all endpoints without writing code.
 
 ---
 
