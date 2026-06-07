@@ -48,6 +48,35 @@ logger = logging.getLogger(__name__)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# DATADOG SETUP
+# Datadog monitors the API layer — request count, response time, error rate.
+# Arize monitors the AI layer (Claude calls, tokens, cost).
+# Together: full observability — infrastructure + LLM.
+#
+# Activates only if DD_API_KEY is set in .env
+# If not set — app works normally, just without Datadog tracking
+# ──────────────────────────────────────────────────────────────────────────────
+def _setup_datadog():
+    """Initialises Datadog if DD_API_KEY is set. Called once when module loads."""
+    dd_api_key = os.getenv("DD_API_KEY")
+    if not dd_api_key:
+        logger.info("Datadog monitoring disabled — DD_API_KEY not set.")
+        return
+    try:
+        from datadog import initialize
+        initialize(
+            api_key=dd_api_key,
+            app_key=os.getenv("DD_APP_KEY", ""),
+            host_name="genai-incident-commander",
+        )
+        logger.info("Datadog monitoring enabled ✅")
+    except Exception as exc:
+        logger.warning("Datadog setup failed: %s", exc)
+
+_setup_datadog()
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # API KEY AUTHENTICATION
 # Protects all endpoints — caller must send correct key in X-API-Key header
 # If API_KEY is not set in .env → auth is disabled (useful for local development)
@@ -262,8 +291,23 @@ async def analyze_log_agentic(
     logger.info("Received log for agentic analysis (%d chars)", len(log_text))
 
     # Step 5: Run the Claude agentic loop
+    import time
+    start_time = time.time()
     try:
         result = engine.run_agent(log_text)
+
+        # ── Send metrics to Datadog (if enabled) ─────────────────────────────
+        try:
+            from datadog import statsd
+            elapsed = time.time() - start_time
+            statsd.increment("incident_commander.analysis.success")        # count successful analyses
+            statsd.histogram("incident_commander.analysis.duration", elapsed)  # response time
+            statsd.increment("incident_commander.analysis.iterations",
+                             value=result.get("iterations", 1))            # how many agent loops
+        except Exception:
+            pass  # Datadog is optional — never break the main flow
+        # ─────────────────────────────────────────────────────────────────────
+
         return result  # FastAPI auto-converts dict to JSON response
 
     except EnvironmentError as exc:
@@ -274,6 +318,11 @@ async def analyze_log_agentic(
         )
     except Exception as exc:
         logger.exception("Agent error")
+        try:
+            from datadog import statsd
+            statsd.increment("incident_commander.analysis.error")  # count errors
+        except Exception:
+            pass
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Agent error: {exc}",

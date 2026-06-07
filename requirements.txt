@@ -32,3 +32,5 @@ arize-otel
 openinference-instrumentation-anthropic
 opentelemetry-sdk
 opentelemetry-exporter-otlp
+# ── Datadog — API health, request rate, error rate monitoring ─────────────────
+datadog
