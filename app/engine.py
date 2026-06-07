@@ -36,6 +36,55 @@ from app.tools import TOOL_REGISTRY  # import the 4 specialist tool functions
 # This makes ANTHROPIC_API_KEY available via os.getenv()
 load_dotenv()
 
+# ──────────────────────────────────────────────────────────────────────────────
+# ARIZE TRACING SETUP
+# Arize is an LLMOps platform — it records every Claude call so you can see:
+#   - What log was sent to Claude
+#   - Which tools Claude called
+#   - What the final report was
+#   - How many tokens were used
+#   - How long each call took
+#
+# This only activates if ARIZE_SPACE_ID and ARIZE_API_KEY are set in .env
+# If not set — the app works normally, just without Arize tracking
+# ──────────────────────────────────────────────────────────────────────────────
+def _setup_arize():
+    """
+    Sets up Arize tracing if credentials are available.
+    Called once when the module loads.
+    """
+    arize_space_id = os.getenv("ARIZE_SPACE_ID")
+    arize_api_key  = os.getenv("ARIZE_API_KEY")
+
+    if not arize_space_id or not arize_api_key:
+        logging.getLogger(__name__).info(
+            "Arize tracing disabled — ARIZE_SPACE_ID or ARIZE_API_KEY not set."
+        )
+        return
+
+    try:
+        from arize.otel import register
+        from openinference.instrumentation.anthropic import AnthropicInstrumentor
+
+        # Step 1: Register Arize — connects to Arize servers
+        tracer_provider = register(
+            space_id=arize_space_id,
+            api_key=arize_api_key,
+            project_name="genai-incident-commander",  # project name in Arize dashboard
+        )
+
+        # Step 2: Instrument Anthropic SDK — traces every Claude call automatically
+        AnthropicInstrumentor().instrument(tracer_provider=tracer_provider)
+
+        logging.getLogger(__name__).info("Arize tracing enabled ✅")
+
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Arize setup failed: %s", exc)
+
+
+# Initialize Arize when this file loads
+_setup_arize()
+
 # Set up logger for this file
 # Usage: logger.info("message") → prints with timestamp and level
 logger = logging.getLogger(__name__)

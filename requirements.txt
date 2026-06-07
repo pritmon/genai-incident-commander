@@ -27,3 +27,8 @@ python-multipart
 pytest
 pytest-asyncio
 httpx
+# ── Arize LLMOps tracing ──────────────────────────────────────────────────────
+arize-otel
+openinference-instrumentation-anthropic
+opentelemetry-sdk
+opentelemetry-exporter-otlp
