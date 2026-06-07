@@ -15,6 +15,7 @@ A plain-English guide to every concept in this project. Read it, say it out loud
 | 🔴 | [Security & Auth](#-security--auth--q23--q25) | Q23 – Q25 |
 | 🟢 | [Testing](#-testing--q26--q28) | Q26 – Q28 |
 | 🔷 | [Market Trends](#-market-trends--q29--q40) | Q29 – Q40 |
+| 🛠️ | [Problems Found & Fixed](#️-problems-found--fixed--q41--q46) | Q41 – Q46 |
 | ⚡ | [Quick Fire](#-quick-fire) | 14 one-liners |
 
 ---
@@ -490,6 +491,121 @@ Open [Dockerfile](https://github.com/pritmon/genai-incident-commander/blob/main/
 - **Audit trail** — every analysis logged with timestamp, user, and result for compliance
 - **SLA monitoring** — track how long each incident took to resolve, flag breaches
 - These are the gaps between a working prototype and a product that a CTO would approve for production
+
+---
+
+## 🛠️ Problems Found & Fixed — Q41 – Q46
+
+---
+
+## 🔵 Q41 — What was wrong with the original report output?
+
+> 💡 **The report was confusing — contradicting error types, internal monologue showing, no instant summary.**
+
+There were 4 clear problems found during testing:
+
+- **Problem 1** — Report started with *"I have all the information needed. Here is the full incident report."* — Claude's internal thinking was leaking into the output. A developer should never see this.
+- **Problem 2** — The summary card at the top said **System Exception** but the report body said **Business Exception** — two different answers in the same report. Nobody knew which one to trust.
+- **Problem 3** — No instant one-liner at the top. Developer had to read 3–4 paragraphs just to understand what broke. In an incident, every second counts.
+- **Problem 4** — Everything written as long essay paragraphs. Developers scan — they don't read essays.
+
+---
+
+## 🔵 Q42 — Why was the error type contradicting itself?
+
+> 💡 **Two different sources were giving two different answers — and nobody told them to agree.**
+
+Here is exactly what happened step by step:
+
+- **Step 1** — Claude calls the `classify_error` tool → see [tools.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/tools.py)
+- The tool uses **simple keyword scoring** — it counts words like `System.Exception`, `BusinessRuleException`
+- It found `System.Exception` first → returned **"System Exception"**
+- The **summary card read this tool result** — so it showed System Exception
+
+- **Step 2** — Claude then reads the full log deeply and thinks for itself
+- Claude understood the real failure was `Vendor not found in master data` — a data problem
+- Claude concluded → **"Business Exception"**
+- The **report body showed Claude's deeper conclusion** — Business Exception
+
+```
+classify_error tool  (keyword scorer) → System Exception  ← card was reading this
+Claude AI           (deep reasoning)  → Business Exception ← report body said this
+```
+
+Two different sources. Two different answers. No rule saying they must match.
+
+---
+
+## 🔵 Q43 — How was the contradicting error type fixed?
+
+> 💡 **The summary card was rewired to read from Claude's report — not from the tool result.**
+
+- **Root fix in** [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py) — the system prompt was updated with a strict rule:
+  > *"Pick ONE error type. Be consistent. Do not repeat it differently in other sections."*
+- **UI fix in** [index.html](https://github.com/pritmon/genai-incident-commander/blob/main/app/static/index.html) — the summary card now uses a regex to extract the error type directly from Claude's `## 🏷️ ERROR TYPE` section in the report
+- Before: card read from `classify_error` tool result (the fast guesser)
+- After: card reads from Claude's final verdict (the real judge)
+- Result: **card and report body always match**
+
+---
+
+## 🔵 Q44 — How was the report format fixed?
+
+> 💡 **The system prompt in engine.py was rewritten to enforce a strict section-by-section structure.**
+
+The system prompt in [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py) now gives Claude these strict rules:
+
+- **Never start** with phrases like *"I have all the information"* — go straight into the report
+- **Always follow this exact section order:**
+
+```
+❌ WHAT WENT WRONG     — one sentence, plain English, anyone understands in 5 seconds
+🏷️ ERROR TYPE         — ONE type only, consistent throughout
+⚡ PRIORITY            — 🔴 HIGH / 🟡 MEDIUM / 🟢 LOW with one line reason
+🔍 ROOT CAUSE          — bullet points only, factual, quote the exact log line
+🛠️ FIX IT             — numbered steps, who does what specifically
+📚 SIMILAR PAST INCIDENTS — past matches with YES/NO does it apply
+🤖 BOT STATUS          — is bot still running or completely stopped?
+```
+
+- Each section = **bullet points or numbered list** — no essays
+- Bold the most important word in each section
+- Fix steps must say **who does what** — no vague steps like "investigate further"
+
+---
+
+## 🔵 Q45 — What is the difference between the old report and the new report?
+
+> 💡 **Old = wall of text that confuses. New = structured report any developer reads in 10 seconds.**
+
+| | Old Report | New Report |
+|---|---|---|
+| First line | *"I have all the information needed"* | **❌ WHAT WENT WRONG** — one clear sentence |
+| Error type | Contradicted itself (card ≠ body) | Consistent everywhere — card matches body |
+| Format | Long essay paragraphs | Bullet points and numbered lists |
+| Fix steps | Vague — *"investigate the issue"* | Specific — *"Master Data Team → create vendor ACME-991 in SAP"* |
+| Bot status | Never mentioned | Always stated — running or stopped |
+| Past incidents | Listed without context | Listed with YES/NO — does it apply here? |
+| Time to understand | 3–5 minutes of reading | 10 seconds of scanning |
+
+---
+
+## 🔵 Q46 — How did you test and verify the fix worked?
+
+> 💡 **Ran the real log file through Claude locally, verified the output, then confirmed it on the live Render URL.**
+
+Testing was done in 3 steps:
+
+- **Step 1 — Local test** — ran the actual `rpa_logs.txt` through the updated [engine.py](https://github.com/pritmon/genai-incident-commander/blob/main/app/engine.py) using the venv Python environment and confirmed:
+  - No internal monologue in output ✅
+  - All 7 sections present in correct order ✅
+  - Error type consistent throughout ✅
+
+- **Step 2 — Card regex test** — ran a Python script to confirm the regex in [index.html](https://github.com/pritmon/genai-incident-commander/blob/main/app/static/index.html) correctly extracts `Business Exception` and `MEDIUM` from Claude's report text ✅
+
+- **Step 3 — Live URL test** — hit the deployed Render endpoint with curl using the real log file and confirmed the new format was live on `https://genai-incident-commander.onrender.com` ✅
+
+- **Then pushed to GitHub** — Render auto-deployed the final fix
 
 ---
 
