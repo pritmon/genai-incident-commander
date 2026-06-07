@@ -49,31 +49,59 @@ logger = logging.getLogger(__name__)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # DATADOG SETUP
-# Datadog monitors the API layer — request count, response time, error rate.
+# Sends metrics directly to Datadog via HTTP API — no Agent needed.
+# Works on any cloud platform including Render free tier.
+#
 # Arize monitors the AI layer (Claude calls, tokens, cost).
-# Together: full observability — infrastructure + LLM.
+# Datadog monitors the API layer (request count, duration, errors).
 #
 # Activates only if DD_API_KEY is set in .env
-# If not set — app works normally, just without Datadog tracking
 # ──────────────────────────────────────────────────────────────────────────────
-def _setup_datadog():
-    """Initialises Datadog if DD_API_KEY is set. Called once when module loads."""
-    dd_api_key = os.getenv("DD_API_KEY")
-    if not dd_api_key:
-        logger.info("Datadog monitoring disabled — DD_API_KEY not set.")
+import time as _time
+
+_DD_API_KEY = os.getenv("DD_API_KEY")
+_DD_SITE    = os.getenv("DD_SITE", "us5.datadoghq.com")
+
+
+def _send_datadog_metric(metric: str, value: float, metric_type: str = "count") -> None:
+    """
+    Sends a single metric to Datadog via HTTP API.
+    No Agent required — works on Render free tier.
+
+    metric_type: "count" (increment) or "gauge" (value like duration)
+    """
+    if not _DD_API_KEY:
         return
     try:
-        from datadog import initialize
-        initialize(
-            api_key=dd_api_key,
-            app_key=os.getenv("DD_APP_KEY", ""),
-            host_name="genai-incident-commander",
+        import urllib.request, json as _json
+        now = int(_time.time())
+        payload = _json.dumps({
+            "series": [{
+                "metric": metric,
+                "points": [[now, value]],
+                "type": metric_type,
+                "host": "genai-incident-commander",
+                "tags": ["env:production", "app:genai-incident-commander"],
+            }]
+        }).encode()
+        req = urllib.request.Request(
+            f"https://api.{_DD_SITE}/api/v1/series",
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "DD-API-KEY": _DD_API_KEY,
+            },
+            method="POST",
         )
-        logger.info("Datadog monitoring enabled ✅")
+        urllib.request.urlopen(req, timeout=3)
     except Exception as exc:
-        logger.warning("Datadog setup failed: %s", exc)
+        logger.debug("Datadog metric send failed (non-critical): %s", exc)
 
-_setup_datadog()
+
+if _DD_API_KEY:
+    logger.info("Datadog monitoring enabled ✅ (HTTP API mode)")
+else:
+    logger.info("Datadog monitoring disabled — DD_API_KEY not set.")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -291,21 +319,16 @@ async def analyze_log_agentic(
     logger.info("Received log for agentic analysis (%d chars)", len(log_text))
 
     # Step 5: Run the Claude agentic loop
-    import time
-    start_time = time.time()
+    start_time = _time.time()
     try:
         result = engine.run_agent(log_text)
 
-        # ── Send metrics to Datadog (if enabled) ─────────────────────────────
-        try:
-            from datadog import statsd
-            elapsed = time.time() - start_time
-            statsd.increment("incident_commander.analysis.success")        # count successful analyses
-            statsd.histogram("incident_commander.analysis.duration", elapsed)  # response time
-            statsd.increment("incident_commander.analysis.iterations",
-                             value=result.get("iterations", 1))            # how many agent loops
-        except Exception:
-            pass  # Datadog is optional — never break the main flow
+        # ── Send metrics to Datadog via HTTP API ──────────────────────────────
+        elapsed = _time.time() - start_time
+        _send_datadog_metric("incident_commander.analysis.success", 1, "count")
+        _send_datadog_metric("incident_commander.analysis.duration", elapsed, "gauge")
+        _send_datadog_metric("incident_commander.analysis.iterations",
+                             result.get("iterations", 1), "gauge")
         # ─────────────────────────────────────────────────────────────────────
 
         return result  # FastAPI auto-converts dict to JSON response
@@ -318,11 +341,7 @@ async def analyze_log_agentic(
         )
     except Exception as exc:
         logger.exception("Agent error")
-        try:
-            from datadog import statsd
-            statsd.increment("incident_commander.analysis.error")  # count errors
-        except Exception:
-            pass
+        _send_datadog_metric("incident_commander.analysis.error", 1, "count")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Agent error: {exc}",
