@@ -445,24 +445,28 @@
     const summaryGrid = document.getElementById('summaryGrid');
     summaryGrid.innerHTML = '';
 
-    const classification = extractLine(report, ['CLASSIFICATION', 'Classification']) || 'See report below';
-    const priority       = extractLine(report, ['PRIORITY', 'Priority']) || 'See report below';
+    // Extract error type from ERROR TYPE section of report (Claude's final verdict)
+    // Search the full report text for Business/System Exception mentions
+    const reportUpper = report.toUpperCase();
+
+    // Find the ERROR TYPE section and read what Claude concluded
+    const errorTypeMatch = report.match(/##\s*🏷️?\s*ERROR TYPE[\s\S]*?(Business Exception|System Exception)/i);
+    const priorityMatch  = report.match(/##\s*⚡?\s*PRIORITY[\s\S]*?(HIGH|MEDIUM|LOW)/i);
+
+    // Use Claude's report verdict — not the tool result
+    const errorType = errorTypeMatch ? errorTypeMatch[1] : (reportUpper.includes('BUSINESS EXCEPTION') ? 'Business Exception' : 'System Exception');
+    const priorityVal = priorityMatch ? priorityMatch[1].toUpperCase() : (reportUpper.includes('HIGH') ? 'HIGH' : reportUpper.includes('MEDIUM') ? 'MEDIUM' : 'LOW');
 
     const cards = [
       {
         label: '🏷️ Error Type',
-        value: classification.includes('Business') && classification.includes('System')
-          ? 'Both Types' : classification.includes('Business')
-          ? 'Business Exception' : 'System Exception',
-        tag: classification.includes('Business') && classification.includes('System')
-          ? 'yellow' : classification.includes('Business') ? 'blue' : 'red',
+        value: errorType,
+        tag: errorType.includes('Business') ? 'blue' : 'red',
       },
       {
         label: '⚡ Priority',
-        value: priority.includes('HIGH') ? 'HIGH'
-             : priority.includes('MEDIUM') ? 'MEDIUM' : 'LOW',
-        tag: priority.includes('HIGH') ? 'red'
-           : priority.includes('MEDIUM') ? 'yellow' : 'green',
+        value: priorityVal,
+        tag: priorityVal === 'HIGH' ? 'red' : priorityVal === 'MEDIUM' ? 'yellow' : 'green',
       },
       {
         label: '🔧 Tools Used',
