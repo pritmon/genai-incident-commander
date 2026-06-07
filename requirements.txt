@@ -1,3 +1,23 @@
+# =============================================================================
+# requirements.txt — All Python libraries this project needs
+#
+# PURPOSE:
+#   Lists every external library the project depends on.
+#   Run `pip install -r requirements.txt` to install all of them at once.
+#   Docker also uses this file to install libraries inside the container.
+#
+# WHAT EACH LIBRARY DOES:
+#   fastapi          → Web framework — handles all API routes and endpoints
+#   aiofiles         → Allows FastAPI to read/write files asynchronously
+#   uvicorn          → The server that runs FastAPI and listens for requests
+#   python-dotenv    → Reads secrets from the .env file into environment variables
+#   anthropic        → Official SDK to talk to Claude AI (Anthropic)
+#   python-multipart → Allows FastAPI to accept file uploads (.txt log files)
+#   pytest           → Runs all automated tests
+#   pytest-asyncio   → Allows pytest to test async FastAPI endpoints
+#   httpx            → HTTP client used by TestClient to simulate API requests in tests
+# =============================================================================
+
 fastapi
 aiofiles
 uvicorn

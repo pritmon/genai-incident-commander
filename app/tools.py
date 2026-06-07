@@ -170,7 +170,10 @@ def search_past_incidents(keywords: list[str], error_type: str = "") -> dict:
     matches = []  # will hold incidents that have at least 1 keyword match
 
     # Loop through every past incident in the knowledge base
+    # Skip the _readme metadata entry (no id = not a real incident)
     for incident in incidents:
+        if "id" not in incident:
+            continue
 
         # Get this incident's keywords (also lowercase)
         incident_keywords = [k.lower() for k in incident["keywords"]]
