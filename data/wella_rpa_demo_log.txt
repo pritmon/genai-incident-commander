@@ -1,0 +1,26 @@
+2026-10-28 09:15:01 [Info] Execution Started. Process: Wella_Invoice_Processing_Bot. Robot: WEL-BOT-03
+2026-10-28 09:15:04 [Info] Logging into SAP ECC. Transaction: MIRO (Invoice Verification).
+2026-10-28 09:15:09 [Info] Reading invoice queue from shared folder: \\wella-share\rpa\invoices\pending\
+2026-10-28 09:15:11 [Info] Processing Invoice: INV-WELLA-2026-4821. Vendor: BASF-EU-007. Amount: EUR 48,250.00
+2026-10-28 09:15:14 [Error] System.Exception: Cannot find the UI element corresponding to this selector:
+    <wnd app='saplogon.exe' cls='SAPGuiSession' title='Invoice Verification - Enter Vendor Invoice: Company Code WE01' />
+    at Source: Open MIRO Screen (REFramework State: Process Transaction)
+2026-10-28 09:15:14 [Warn] Retrying in 5 seconds... (Attempt 1 of 3)
+2026-10-28 09:15:20 [Error] System.Exception: Selector timeout after 30000ms. UI element still not found.
+    at Source: Open MIRO Screen (REFramework State: Process Transaction)
+2026-10-28 09:15:20 [Warn] Retrying in 5 seconds... (Attempt 2 of 3)
+2026-10-28 09:15:26 [Error] System.Exception: Selector timeout after 30000ms. UI element still not found.
+    at Source: Open MIRO Screen (REFramework State: Process Transaction)
+2026-10-28 09:15:26 [Fatal] Max retries reached. Marking transaction as System Exception.
+2026-10-28 09:15:27 [Info] Transaction INV-WELLA-2026-4821 moved to exception queue.
+2026-10-28 09:15:27 [Info] Checking next invoice in queue...
+2026-10-28 09:15:29 [Info] Processing Invoice: INV-WELLA-2026-4822. Vendor: HENKEL-DE-003. Amount: EUR 12,400.00
+2026-10-28 09:15:33 [Fatal] BusinessRuleException: Vendor HENKEL-DE-003 is blocked in SAP. Payment block indicator: 'R' (Under Review).
+    at Source: Validate Vendor Status (REFramework State: Get Transaction Data)
+2026-10-28 09:15:34 [Info] Transaction INV-WELLA-2026-4822 marked as Business Exception. Escalating to AP team.
+2026-10-28 09:15:35 [Info] Processing Invoice: INV-WELLA-2026-4823. Vendor: CLARIANT-CH-011. Amount: EUR 9,870.00
+2026-10-28 09:15:39 [Error] ApplicationException: Duplicate invoice detected. Invoice INV-WELLA-2026-4823 already posted as SAP Document 5100087432.
+    at Source: Post Invoice (REFramework State: Process Transaction)
+2026-10-28 09:15:40 [Info] Transaction INV-WELLA-2026-4823 marked as Business Exception. Skipping.
+2026-10-28 09:15:41 [Info] Queue processing complete. Processed: 3. Success: 0. System Exceptions: 1. Business Exceptions: 2.
+2026-10-28 09:15:41 [Info] Execution Ended. Status: Completed With Errors.

@@ -6,10 +6,16 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Claude](https://img.shields.io/badge/Claude_AI-Anthropic-blueviolet?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python_3.11-3776AB?style=for-the-badge&logo=python)
+![Arize](https://img.shields.io/badge/Arize_AX-LLMOps-6C3FC4?style=for-the-badge)
+![Datadog](https://img.shields.io/badge/Datadog-APM-632CA6?style=for-the-badge&logo=datadog)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker)
+![Render](https://img.shields.io/badge/Render-Live_Deploy-46E3B7?style=for-the-badge)
 
-**An agentic AI-powered API that analyzes RPA failure logs, classifies errors, searches past incidents, and suggests exact fixes — powered by Claude AI (Anthropic).**
+**An agentic AI-powered API that analyzes RPA failure logs, classifies errors, searches past incidents, and suggests exact fixes — powered by Claude AI (Anthropic). Fully observable via Arize AX (LLM layer) and Datadog (API layer).**
 
 🌐 **Live Demo:** [https://genai-incident-commander.onrender.com/ui](https://genai-incident-commander.onrender.com/ui)
+📊 **Arize Dashboard:** [app.arize.com](https://app.arize.com) — tracks every Claude call (tokens, cost, latency)
+📈 **Datadog Dashboard:** [us5.datadoghq.com](https://us5.datadoghq.com) — tracks request count, duration, error rate
 
 </div>
 
@@ -348,6 +354,81 @@ Claude decides which tools to call and in what order — **you don't tell it**. 
 
 ---
 
+---
+
+## 📊 Live Observability — Dual Stack
+
+This project runs a **dual observability stack** — watching both the AI layer and the API layer in production.
+
+### Arize AX — LLM Layer (what Claude is doing)
+
+| Metric | What it shows |
+|---|---|
+| Traces | Every Claude API call — input log, output report, tool calls |
+| Token usage | How many tokens consumed per analysis |
+| Cost | USD cost per analysis ($0.02 – $0.08 typical) |
+| Latency | How long Claude took per request |
+
+**How it works:** OpenTelemetry + AnthropicInstrumentor automatically traces every Claude call and sends it to Arize — zero manual logging needed.
+
+```python
+# engine.py — Arize wires up in 2 lines
+tracer_provider = register(space_id=..., api_key=..., project_name="genai-incident-commander")
+AnthropicInstrumentor().instrument(tracer_provider=tracer_provider)
+```
+
+### Datadog — API Layer (is the app healthy?)
+
+| Metric | What it shows |
+|---|---|
+| `incident_commander.analysis.success` | Count of successful analyses per day |
+| `incident_commander.analysis.duration` | How long each full request took (seconds) |
+| `incident_commander.analysis.iterations` | How many tool loops Claude used |
+| `incident_commander.analysis.error` | Count of failures |
+
+**How it works:** Direct HTTP API — no Datadog Agent needed. Works on Render free tier.
+
+```python
+# main.py — sends metric via urllib (no agent required)
+POST https://api.us5.datadoghq.com/api/v1/series
+DD-API-KEY: <your-key>
+```
+
+### Why both?
+
+> Arize answers: *"What is Claude thinking and how much is it costing?"*
+> Datadog answers: *"Is the app up and fast?"*
+
+Neither tool replaces the other. Together they give full visibility from HTTP request → Claude reasoning → final report.
+
+---
+
+## 🎬 Demo — Try It Now
+
+**Step 1:** Open the live UI
+👉 [https://genai-incident-commander.onrender.com/ui](https://genai-incident-commander.onrender.com/ui)
+
+**Step 2:** Upload one of these sample log files from the `data/` folder:
+- `rpa_logs.txt` — SAP VA01 selector failure + business exception
+- `wella_rpa_demo_log.txt` — Wella-style invoice processing bot with 3 different failures
+
+**Step 3:** Click **Analyze** — watch Claude call 4 tools and write the report in ~15 seconds.
+
+**What you will see in the report:**
+```
+❌ WHAT WENT WRONG      — one plain English sentence
+🏷️ ERROR TYPE           — Business Exception or System Exception
+⚡ PRIORITY             — 🔴 HIGH / 🟡 MEDIUM / 🟢 LOW
+🔍 ROOT CAUSE           — 3-5 bullet points, factual
+🛠️ FIX IT               — numbered action steps, who does what
+📚 SIMILAR PAST INCIDENTS — matched from knowledge base
+🤖 BOT STATUS           — is the bot still running?
+```
+
+**API Key for demo:** `incident-commander-2024`
+
+---
+
 <div align="center">
-  <i>Built with FastAPI + Claude AI (Anthropic) · Agentic · Tested · Secure</i>
+  <i>Built with FastAPI + Claude AI (Anthropic) · Agentic · Tested · Secure · Observable</i>
 </div>
