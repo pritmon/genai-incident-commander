@@ -109,9 +109,13 @@
     .input-group input:focus { border-color: #667eea; }
 
     /* ── Button ── */
-    .btn-analyze {
-      width: 100%;
+    .btn-row {
+      display: flex;
+      gap: 10px;
       margin-top: 18px;
+    }
+    .btn-analyze {
+      flex: 1;
       padding: 13px;
       background: linear-gradient(135deg, #667eea, #764ba2);
       border: none;
@@ -129,6 +133,20 @@
     .btn-analyze:hover { opacity: 0.9; }
     .btn-analyze:active { transform: scale(0.98); }
     .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-clear {
+      padding: 13px 18px;
+      background: transparent;
+      border: 1px solid #4a5568;
+      border-radius: 10px;
+      color: #a0aec0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: none;
+    }
+    .btn-clear:hover { border-color: #fc8181; color: #fc8181; }
 
     .spinner {
       width: 17px; height: 17px;
@@ -307,10 +325,13 @@
       <input type="password" id="apiKey" placeholder="Enter your API key" value="incident-commander-2024" />
     </div>
 
-    <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
-      <div class="spinner" id="spinner"></div>
-      <span id="btnText">🔍 Analyze Log</span>
-    </button>
+    <div class="btn-row">
+      <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
+        <div class="spinner" id="spinner"></div>
+        <span id="btnText">🔍 Analyze Log</span>
+      </button>
+      <button class="btn-clear" id="clearBtn" onclick="clearAll()">🗑️ Clear</button>
+    </div>
 
     <div class="status-bar" id="statusBar"></div>
   </div>
@@ -407,6 +428,7 @@
       showSteps(data.agent_steps);
       showReport(data.final_report, data.agent_steps.length, data.iterations);
       showStatus('Analysis complete! ✅', 'success');
+      document.getElementById('clearBtn').style.display = 'block';
 
     } catch (err) {
       showStatus('Error: ' + err.message, 'error');
@@ -572,6 +594,33 @@
     bar.textContent = msg;
     bar.className = 'status-bar ' + type;
     bar.style.display = 'block';
+  }
+
+  function clearAll() {
+    // Reset file input
+    fileInput.value = '';
+    uploadArea.classList.remove('file-selected');
+    document.getElementById('fileName').textContent = '';
+
+    // Reset steps panel
+    document.getElementById('stepsTracker').innerHTML = '';
+    document.getElementById('stepsTracker').style.display = 'none';
+    document.getElementById('emptySteps').style.display = 'block';
+
+    // Reset report panel
+    document.getElementById('resultPanel').style.display = 'none';
+    document.getElementById('summaryGrid').innerHTML = '';
+    document.getElementById('reportSections').innerHTML = '';
+    document.getElementById('toolCount').textContent = '-';
+    document.getElementById('iterCount').textContent = '-';
+
+    // Reset status and clear button
+    const bar = document.getElementById('statusBar');
+    bar.style.display = 'none';
+    document.getElementById('clearBtn').style.display = 'none';
+
+    // Scroll back to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 </script>
 
